@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/NavBar :: NavBar}"></html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="stylesheets/WorkItemView.css">
+  <script src="JavaScript/WorkItemView.js"></script>
+
+  <!--Font & Icon import-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  <!-- Google font Quicksand-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet">
+  
+
+  <!-- For VSCode live server -->
+  <link rel="stylesheet" href="/src/main/resources/public/stylesheets/WorkItemView.css">
+  <title>View Work Items Database</title>
+</head>
+<body style="font-family: Quicksand, sans-serif;">
+  <div class="db-container">
+    <h1 style="font-weight: bolder;">BGC Work Items</h1><br>
+    <label>Start Date: </label><input style="font-family: Quicksand, sans-serif;" type="date" id="startdate" onchange="parseTeamString()"/><label>End Date: </label><input style="font-family: Quicksand, sans-serif;" type="date" id="enddate" onchange="parseTeamString()"/>
+    <table id="WorkItemViewtable"class="styled-table">
+      <tr class="table-header" style="color: lavenderblush;">
+        <th class="header-name" style="padding-right: 150px; border-top-left-radius: 7px;">Item Name</th>
+        <th class="header-name" style="padding-right: 50px">Start Date</th>
+        <th class="header-name" style="padding-right: 50px">End Date</th>
+        <th class="header-name" style="padding-right: 300px">Teams</th>
+        <th class="header-name" style="padding-right: 20px">Funding Information</th>
+        <th class="header-name" style="padding-right: 10px;">Edit</th> <!-- for edit icon-->
+        <th class="header-name" style="border-top-right-radius: 7px;">Delete</th> <!-- for delete icon-->
+        
+        <tr th:each="n:${WorkItems}">
+          <td style="padding-right: 150px" th:text="${n.ItemName}"></td>
+          <td style="padding-right: 50px" th:text="${n.StartDate}"></td>
+          <td style="padding-right: 50px" th:text="${n.EndDate}"></td>
+          <td style="padding-right: 300px" th:text="${n.TeamsAssigned}"></td>
+          <td style="padding-right: 20px" th:text="${n.FundingInformation}"></td>
+
+          <!-- For Edit function -->
+          <th:block th:switch="${userRole}">
+          <td th:case="admin">
+            <form th:action="@{/WorkItemEdit/{id}(id=${n.Id})}">
+              <button style="border: none; background:transparent;" type="submit" value="Edit"><i style="color:#00196A" class="fa fa-cog fa-lg"></i></button>
+            </form>
+          </td>
+          <td th:case="viewedit">
+            <form th:action="@{/WorkItemEdit/{id}(id=${n.Id})}">
+              <button style="border: none; background:transparent;" type="submit" value="Edit"><i style="color:#00196A" class="fa fa-cog fa-lg"></i></button>
+            </form>
+          </td>
+          </th:block>
+
+          <!-- For Delete function -->
+          <th:block th:switch="${userRole}">
+            <td th:case="admin">
+              <form th:action="@{/WorkItemDelete/{id}(id=${n.Id})}">
+                <button style="border: none; background:transparent;" type="submit" value="Delete"><i style="color:#00196A" class="fa fa-trash fa-lg"></i></button>
+              </form>
+            </td>
+            <td th:case="viewedit">
+              <form th:action="@{/WorkItemDelete/{id}(id=${n.Id})}">
+                <button style="border: none; background:transparent;" type="submit" value="Delete"><i style="color:#00196A" class="fa fa-trash fa-lg"></i></button>
+              </form>
+            </td>
+          </th:block>
+
+        </tr>
+    </table>
+    <br>
+    <button style="font-family: Quicksand, sans-serif;" class="back-btn" onclick="window.history.back();">Go Back</button>
+  </div>
+</body>
+<script>
+  document.getElementById('startdate').value = "2021-07-01";
+  document.getElementById("enddate").value = "2021-09-01";
+  parseTeamString();
+  </script>
+</html>
+

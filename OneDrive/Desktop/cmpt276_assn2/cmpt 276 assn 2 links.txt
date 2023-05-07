@@ -1,0 +1,8 @@
+Heroku Link
+
+https://rectangle-mania.herokuapp.com/
+
+
+Github Repo Link
+
+https://github.com/aj3011/CMPT276_ASSN2

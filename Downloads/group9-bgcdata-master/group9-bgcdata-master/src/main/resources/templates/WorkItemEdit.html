@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/NavBar :: NavBar}"></html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/stylesheets/WorkItemSubmit.css">
+
+  <!-- For live server - please remove in final iteration!-->
+  <!-- <link rel="stylesheet" href="/src/main/resources/public/stylesheets/WorkItemSubmit.css"> -->
+
+  <!-- Google font-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet">
+
+<!-- style for removing arrows in number inputs -->
+<style> 
+    ::-webkit-scrollbar {display:none;}
+    /* Chrome, Safari, Edge, Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Firefox */
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+    </style>
+
+  <title>Edit Workitem</title>
+</head>
+<body style="font-family: Quicksand, san-serif;">
+  <div class="form-data">
+    <h1>Edit Work Item</h1>
+    <h4>Make the changes to the Work Item</h4>
+    <div class="databox">
+    <form action="#" method="post" th:action="@{/WorkItemEdit}" th:object="${WorkItem}">
+        <input style="border-radius: 20px; width: 100%; font-family: Quicksand, san-serif;" type="text" th:field="*{ItemName}" placeholder="Work Item Name" required>
+        <input style="border-radius: 20px; font-family: Quicksand, san-serif;" type="date" th:field="*{StartDate}" onchange="UpdateTable()" id="startDate" required>
+        <input style="border-radius: 20px; font-family: Quicksand, san-serif;" type="date" th:field="*{EndDate}" onchange="UpdateTable()" id="endDate" required>
+        <table id="InputTable" onchange="createTeamString()">
+            <tr id="Row0">
+              <th class="headerrow">Resource Name</th><th>Item Type</th>
+            </tr>
+          <tr id="Row1">
+              <td style="font-family: Quicksand, san-serif;" class="rowname"><input type='text' id="cell1:0"><br><button class="delbtn" type='button' onclick='deleterow(1)'>Delete This Row</button></td>
+              <td style="font-family: Quicksand, san-serif;"class="rowname" ><select id="cell1:1"><option value="Dev">Dev</option><option value="QA">QA</option></select></td>
+            </tr>
+        </table>
+        <input type="hidden" id="TBstring" th:field="*{TeamsAssigned}"></input>
+        <input type="hidden" th:field="*{Id}"></input>
+        <button style="border-radius: 20px; font-family: Quicksand, sans-serif;" class="inside_btn" type="button" onclick="AddTeam()">Add Resource</button>
+        <div><textarea style="font-family: Quicksand, san-serif;" cols="50" rows="5" th:field="*{FundingInformation}" name="FundingInformation" placeholder="Funding Information" required></textarea></div>
+        <input style="border-radius: 20px; font-family: Quicksand, sans-serif;" type="submit" value="Update Work Item">
+    </form>
+    </div>
+  </div>
+<script>
+  
+function AddTeam(){
+    var table = document.getElementById("InputTable");
+    var TableRows = (table.rows.length-1);
+    var newrow = table.insertRow(-1);
+    newrow.id = "Row"+(TableRows+1);
+    UpdateTable();
+}
+
+function DeleteTeam(){
+    var table = document.getElementById("InputTable");
+    var TableRows = (table.rows.length-1);
+    if(TableRows == 1){alert("Must have at least one Team");}
+    else
+    {
+        table.deleteRow(-1);
+    }
+}
+
+function weeksBetween(StartDate, EndDate) {
+    return Math.ceil((EndDate - StartDate) / (7 * 24 * 60 * 60 * 1000));//rounds up the amount of weeks between the two dates (the number is the amount of milliseconds in a week)
+}
+
+function UpdateTable(){
+    //console.log("Updating Table");
+    var table = document.getElementById("InputTable");
+    var StartDate = document.getElementById("startDate").valueAsDate;
+    var EndDate = document.getElementById("endDate").valueAsDate;
+    if(EndDate < StartDate) 
+    {
+        document.getElementById("endDate").valueAsDate = StartDate;
+    }
+    var weeks = weeksBetween(StartDate,EndDate);
+    if(weeks < 1) {weeks = 1;}
+    var TableRows = (table.rows.length);
+    var currentrowpntr;
+    var cellcounter = 0;
+    var currentcellpntr;
+    for(var RowCounter = 0;RowCounter < TableRows;RowCounter++)
+    {
+        
+        currentrowpntr = document.getElementById("Row"+RowCounter);
+        cellcounter = currentrowpntr.cells.length;
+        if(RowCounter == 0){
+            var temp = cellcounter-1;
+            while(temp > 0){currentrowpntr.deleteCell(temp);temp--}
+            cellcounter = 1;
+        }
+        while (cellcounter != (weeks+2))
+        {
+            //console.log(cellcounter + "/" + weeks);
+            if (cellcounter < (weeks+2)) {
+                currentcellpntr = currentrowpntr.insertCell(-1);
+                if(RowCounter == 0)
+                {
+                    var Cheese = new Date(StartDate.getTime() + ((cellcounter-1)*(7 * 24 * 60 * 60 * 1000) + (24 * 60 * 60 * 1000)));
+                    //maybe concatenate calculation here
+                    if(cellcounter == 1){
+                        currentcellpntr.innerHTML = "Item Type";
+                        currentcellpntr.className = "itemheader";
+                        }else{
+                        currentcellpntr.innerHTML = Cheese.toString().substring(0,15);
+                        currentcellpntr.className = "itemheader";
+                        }
+                }
+                else
+                {
+                    if (cellcounter == 0)
+                    {
+                        currentcellpntr.innerHTML = "<input type='text' id='"+("cell"+RowCounter+":"+cellcounter)+"' required><br><button type='button' class='delbtn' id='btn"+RowCounter+"' onclick='deleterow("+RowCounter+")'>Delete This Row</button>";
+                        currentcellpntr.className = "rowname";
+                    }
+                    else if (cellcounter == 1){
+                        currentcellpntr.innerHTML = '<td><select id="cell'+RowCounter+":"+cellcounter+'"><option value="Dev">Dev</option><option value="QA">QA</option></select></td>';
+                        currentcellpntr.className = "rowname";
+                    }
+                    else {currentcellpntr.innerHTML = "<input type='number' id='"+("cell"+RowCounter+":"+cellcounter)+"'  min='0' >";}
+                }
+            }
+            else if (cellcounter > (weeks+2)) {
+                currentrowpntr.deleteCell(-1);
+            }
+            cellcounter = currentrowpntr.cells.length;
+        }
+    }
+    createTeamString();
+}
+
+function createTeamString(){
+    var table = document.getElementById("InputTable");
+    var TableRows = (table.rows.length);
+    var TableCells = document.getElementById("Row0").cells.length;
+    var TableString = "";
+    //console.log(TableRows+"|I|"+TableCells);
+    for(var RowCounter = 1;RowCounter < TableRows;RowCounter++)
+    {
+        TableString += "T"+RowCounter+":"
+        for(var CellCounter = 0; CellCounter < TableCells; CellCounter++)
+        {
+            if(document.getElementById("cell"+RowCounter+":"+CellCounter).value != ""){
+            TableString += document.getElementById("cell"+RowCounter+":"+CellCounter).value;
+            }else{
+            TableString += "0";
+            }
+            if(CellCounter != TableCells-1){
+              TableString += ","
+            }
+        }
+        TableString += "|";
+    }
+    //console.log(TableString);
+    document.getElementById("TBstring").value = TableString;
+}
+
+function deleterow(row)
+{
+    console.log("deleterow"+row);
+    var table = document.getElementById("InputTable");
+    var StartDate = document.getElementById("startDate").valueAsDate;
+    var EndDate = document.getElementById("endDate").valueAsDate;
+    if(EndDate < StartDate) 
+    {
+        document.getElementById("endDate").valueAsDate = StartDate;
+    }
+    var TableRows = (table.rows.length-1);
+    var target;
+    var cellupdate = 0;
+    var cellupdatepnt;
+    if(TableRows == 1){alert("Must have at least one Team");}
+    else
+    {
+        table.deleteRow(row);
+        while (row < TableRows)
+        {
+            console.log(row+",");
+            target = document.getElementById("Row"+(row+1));
+            cellupdatepnt = document.getElementById("btn"+(row+1));
+            cellupdatepnt.setAttribute("onclick", "deleterow("+row+");");
+            console.log(cellupdatepnt.onclick);
+            cellupdatepnt.id = "btn"+row;
+            while(cellupdate < target.cells.length)
+            {
+                cellupdatepnt = document.getElementById("cell"+(row+1)+":"+cellupdate);
+                cellupdatepnt.id = "cell"+row+":"+cellupdate;
+                cellupdate++;
+            }
+            target.id = "Row"+row;
+            row++;
+            cellupdate = 0;
+        }
+    }
+    createTeamString();
+}
+
+function FillTable(){
+    var Teams = parseTeamString(document.getElementById("TBstring").value);
+    UpdateTable();
+    var i = 0;
+    var TableCells = document.getElementById("Row0").cells.length;
+    Teams.forEach(Row => {
+        if(i != 0 && (Teams.length-1) != i){
+          AddTeam();
+        }
+        for(var CellCounter = 0; CellCounter < TableCells; CellCounter++)
+        {
+            if(CellCounter == 0){
+                Row[CellCounter] = Row[CellCounter].slice(3);
+            }
+            if(CellCounter == 1){
+                console.log(document.getElementById("cell"+(i+1)+":"+CellCounter));
+                if(Row[CellCounter] == "QA"){
+                    document.getElementById("cell"+(i+1)+":"+1).options.selectedIndex = 1;
+                }else{
+                    document.getElementById("cell"+(i+1)+":"+1).options.selectedIndex = 0;
+                }
+            }else if (document.getElementById("cell"+(i+1)+":"+CellCounter) != null){
+            document.getElementById("cell"+(i+1)+":"+CellCounter).value = Row[CellCounter];
+            }
+        }
+        i++;
+        UpdateTable();
+    
+  });
+  }
+    
+    function parseTeamString(team){
+        var i = 0;
+        team = team.split("|");
+        while(i < team.length){
+        team[i] = team[i].split(",");
+        var Team = "";
+        var c = 0;
+        team[i].forEach(t => {
+            if(c == 0){
+                Team += t.slice(3)+" ";
+                c++;
+            }else{
+            Team += t+" ";
+            }
+        });
+        i++;
+    }
+    return team;
+    }
+  function SelectType(value){
+      values = document.getElementById("itemtype");
+      //console.log(values)
+      //console.log(values.value);
+    if(values.value == "Dev"){
+      document.getElementById("dev").checked = true;
+    }else{
+      document.getElementById("qa").checked = true;
+    }
+  }
+  FillTable();
+</script>
+</body>
+</html>

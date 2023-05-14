@@ -4,6 +4,7 @@ const colors = require("colors");
 const morgan = require("morgan");
 const transactionRouter = require("./routes/transactionRouter");
 const connectDB = require("./config/db");
+const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
 const app = express();
 

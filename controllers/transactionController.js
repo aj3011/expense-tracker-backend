@@ -56,7 +56,6 @@ exports.addTransaction = async (req, res, next) => {
 // @route -> DELETE /api/v1/transactions/:id
 // @access PUBLIC
 exports.deleteTransaction = async (req, res, next) => {
-  console.log(`I am inside server with ${req.params.id}`);
   try {
     const transaction = await Transaction.findByIdAndDelete(req.params.id);
     if (!transaction) {
